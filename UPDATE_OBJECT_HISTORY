@@ -1,0 +1,113 @@
+  method UPDATE_OBJECT_HISTORY.
+    DATA: lo_http_client TYPE REF TO if_http_client.
+DATA: response TYPE string,
+      lv_url   TYPE string,
+          lv_auth  TYPE string.
+
+    CONSTANTS : lv_initial_url TYPE string VALUE 'https://blockchain-service.cfapps.sap.hana.ondemand.com/blockchain/proofOfHistory/api/v1/histories/'.
+
+    IF iv_object_id IS NOT INITIAL.
+
+*** Getting Token
+      TYPES:
+        BEGIN OF t_entry,
+          access_token TYPE string,
+          token_type   TYPE string,
+          expires_in   TYPE n LENGTH 8,
+          scope        TYPE string,
+          jti          TYPE string,
+        END OF t_entry .
+      TYPES:
+        t_entry_map TYPE SORTED TABLE OF t_entry WITH UNIQUE KEY access_token.
+      DATA: m_entries TYPE t_entry.
+
+      DATA: lr_instance  TYPE REF TO  /ui5/cl_json_parser.
+      CREATE OBJECT lr_instance.
+      CALL METHOD me->get_token.
+      IF gv_token IS NOT INITIAL.
+
+        /ui2/cl_json=>deserialize(
+        EXPORTING json = gv_token pretty_name = /ui2/cl_json=>pretty_mode-camel_case CHANGING data = m_entries ).
+        DATA lv_auth2 TYPE string.
+        lv_auth2 = m_entries-access_token.
+*        gv_token = gv_token+17.
+
+        CONCATENATE 'Bearer' lv_auth2 INTO lv_auth SEPARATED BY space.
+
+      ENDIF.
+      DATA lv_object_id TYPE string.
+      lv_object_id = iv_object_id.
+      TRANSLATE lv_object_id TO LOWER CASE.
+
+      CONCATENATE lv_initial_url lv_object_id INTO lv_url. "Appending Fix URL and the Object ID to get the Request URL
+
+"create HTTP client by url
+"create HTTP client by url
+CALL METHOD cl_http_client=>create_by_url
+  EXPORTING
+    url                = lv_url
+
+  IMPORTING
+    client             = lo_http_client
+  EXCEPTIONS
+    argument_not_found = 1
+    plugin_not_active  = 2
+    internal_error     = 3
+    OTHERS             = 4.
+
+"Available API Endpoints
+"https://blockchain-service.cfapps.sap.hana.ondemand.com/blockchain/proofOfHistory/api/v1
+"https://blockchain-service.cfapps.eu10.hana.ondemand.com/blockchain/proofOfHistory/api/v1
+"https://blockchain-service.cfapps.us10.hana.ondemand.com/blockchain/proofOfHistory/api/v1
+
+IF sy-subrc <> 0.
+  "error handling
+ENDIF.
+
+"setting request method
+lo_http_client->request->set_method('PATCH').
+
+"adding headers
+lo_http_client->request->set_header_field( name = 'Content-Type' value = 'application/json' ).
+lo_http_client->request->set_header_field( name = 'Accept' value = 'application/json' ).
+lo_http_client->request->set_header_field( name = 'Authorization' value =  lv_auth ).
+
+
+"Available Security Schemes for productive API Endpoints
+"OAuth 2.0
+
+CALL METHOD lo_http_client->request->set_cdata
+  EXPORTING
+    data = IV_BODY_DATA.
+
+CALL METHOD lo_http_client->send
+  EXCEPTIONS
+    http_communication_failure = 1
+    http_invalid_state         = 2
+    http_processing_failed     = 3
+    http_invalid_timeout       = 4
+    OTHERS                     = 5.
+
+IF sy-subrc = 0.
+  CALL METHOD lo_http_client->receive
+    EXCEPTIONS
+      http_communication_failure = 1
+      http_invalid_state         = 2
+      http_processing_failed     = 3
+      OTHERS                     = 5.
+ENDIF.
+
+ IF sy-subrc <> 0.
+        "error handling
+        response = lo_http_client->response->get_cdata( ).
+        ev_response = response.
+      ELSE.
+        response = lo_http_client->response->get_cdata( ).
+        IF response IS NOT INITIAL.
+          ev_response = response.
+        ELSE.
+          ev_response = 'Block Updated successfully'.
+        ENDIF.
+      ENDIF.
+ENDIF.
+  endmethod.

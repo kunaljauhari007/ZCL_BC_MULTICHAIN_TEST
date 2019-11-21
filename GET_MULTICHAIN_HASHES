@@ -1,0 +1,139 @@
+  METHOD get_multichain_hashes.
+    TYPES:
+      BEGIN OF t_entry,
+        id      TYPE string,
+        updates TYPE string,
+      END OF t_entry .
+    DATA : lv_response    TYPE string,
+           obj            TYPE REF TO zcl_bc_multichain_test,
+           m_entries      TYPE t_entry,
+           ls_hashed_data type ZEDOC_RANGE.
+
+    CREATE OBJECT obj.
+    CALL METHOD obj->get_proof_history
+      EXPORTING
+        iv_object_id = 'EDOC'
+      IMPORTING
+        ev_response  = lv_response.
+    IF lv_response IS NOT INITIAL.
+      TYPES:
+        BEGIN OF t_entry0,
+          guid               TYPE string,
+          companycode        type string,
+          country            type string,
+          SourceType         TYPE string,
+          eDocumentSourceKey TYPE string,
+          eDocumentType      TYPE string,
+          ProcessStatus      TYPE string,
+          LastChangedByUser  TYPE string,
+          CreatedByUser      TYPE string,
+          DOCUMENTDATE       TYPE string,
+          POSTINGDATE        TYPE string,
+          Currency           TYPE string,
+          NetValue           TYPE string,
+        END OF t_entry0,
+
+        BEGIN OF t_entry1,
+          timestamp TYPE string,
+          update    TYPE t_entry0,
+        END OF t_entry1,
+        updates TYPE STANDARD TABLE OF t_entry1 WITH NON-UNIQUE DEFAULT KEY,
+        BEGIN OF t_entry2,
+          id      TYPE string,
+          updates TYPE updates,
+        END OF t_entry2 .
+      REPLACE ALL OCCURRENCES OF REGEX '[ ]' IN lv_response WITH ''.
+      REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_response WITH ''.
+      DATA: m_entries2 TYPE t_entry2.
+      /ui2/cl_json=>deserialize(
+      EXPORTING json = lv_response pretty_name = /ui2/cl_json=>pretty_mode-camel_case CHANGING data = m_entries2 ).
+      LOOP AT m_entries2-UPDATES ASSIGNING FIELD-SYMBOL(<fs_entries>).
+        IF <fs_entries>-UPDATE-GUID  = IV_EDOC_GUID.
+
+          ls_hashed_data-FIELD = 'TIMESTAMP'.
+          ls_hashed_data-VALUE = <fs_entries>-TIMESTAMP.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'GUID'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-GUID.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Company Code'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-COMPANYCODE.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Country'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-COUNTRY.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Source Type'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-SOURCETYPE.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'eDocument Source Key'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-EDOCUMENTSOURCEKEY.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'eDocument Type'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-EDOCUMENTTYPE.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Process Status'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-PROCESSSTATUS.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Last Changed By User'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-LASTCHANGEDBYUSER.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Created By User'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-CREATEDBYUSER.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Document Date'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-DOCUMENTDATE.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Posting Date'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-POSTINGDATE.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Currency'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-CURRENCY.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+
+          CLEAR ls_hashed_data.
+          ls_hashed_data-FIELD = 'Net Value'.
+          ls_hashed_data-VALUE = <fs_entries>-UPDATE-NETVALUE.
+          APPEND ls_hashed_data to ET_HASHED_DATA.
+          APPEND ls_hashed_data to ET_TIMESTAMP_DATA.
+          CLEAR ls_hashed_data.
+        ENDIF.
+      ENDLOOP.
+      UNASSIGN <fs_entries>.
+    ENDIF.
+  ENDMETHOD.

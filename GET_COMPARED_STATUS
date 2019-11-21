@@ -1,0 +1,103 @@
+  METHOD get_compared_status.
+
+    DATA: lv_edoc_guid       TYPE edoc_guid,
+          lt_edoc_data       TYPE TABLE OF zc2rchasheddoc,
+          lt_hashed_data     TYPE zedoc_data,
+          lt_multichain_data TYPE zedoc_data,
+          ls_hashed_status   TYPE zedoc_range,
+          lv_compliance      TYPE char1 VALUE 'X'.
+
+*** Get latest data maintained in the table
+    SELECT SINGLE * FROM zc2rchasheddoc INTO @DATA(ls_edoc_data) WHERE guid = @iv_edoc_guid.
+    IF sy-subrc = 0.
+***** Multichain Comparision
+*
+*** Get Hash of all the fields from Hashing Method
+      zcl_demo_hash_edocument=>get_hashes(
+                EXPORTING
+                  is_document    = ls_edoc_data
+                IMPORTING
+                  et_hashed_data = lt_hashed_data
+              ).
+
+**** Get Quorum Data
+      TRY.
+          DATA(ls_result) = zcl_c2r_bl_edoc=>get_instance( iv_edoc_guid )->zif_c2r_bl_edoc~read_from_blockchain( ).
+        CATCH zcx_c2r_edoc.
+      ENDTRY.
+    ENDIF.
+*
+**** Get Hash of all the fields from Multichain Block
+*    zcl_demo_hash_edocument=>get_multichain_hashes(
+*                  EXPORTING
+*                    iv_edoc_guid   = IV_EDOC_GUID
+*                  IMPORTING
+*                    et_hashed_data = lt_multichain_data
+*                ).
+*    LOOP AT lt_hashed_data ASSIGNING FIELD-SYMBOL(<fs_hashed_data>).
+*      LOOP AT lt_multichain_data ASSIGNING FIELD-SYMBOL(<fs_multichain_data>).
+*        IF <fs_hashed_data>-FIELD = <fs_multichain_data>-FIELD.
+*          IF <fs_hashed_data>-CURRENT_HASH = <fs_multichain_data>-VALUE.
+*            ls_hashed_status-FIELD = <fs_hashed_data>-FIELD.
+*            ls_hashed_status-VALUE = <fs_hashed_data>-VALUE.
+*            ls_hashed_status-COMPLAINT = abap_true.
+*            ls_hashed_status-CURRENT_HASH = <fs_hashed_data>-CURRENT_HASH.
+*            ls_hashed_status-MULTICHAIN_HASH = <fs_multichain_data>-VALUE.
+*            APPEND ls_hashed_status to ET_HASHED_STATUS.
+*            CLEAR ls_hashed_status.
+*          ELSE.
+*            lv_compliance = ''.
+*            ls_hashed_status-FIELD = <fs_hashed_data>-FIELD.
+*            ls_hashed_status-VALUE = <fs_hashed_data>-VALUE.
+*            ls_hashed_status-COMPLAINT = abap_false.
+*            ls_hashed_status-CURRENT_HASH = <fs_hashed_data>-CURRENT_HASH.
+*            ls_hashed_status-MULTICHAIN_HASH = <fs_multichain_data>-VALUE.
+*            APPEND ls_hashed_status to ET_HASHED_STATUS.
+*            CLEAR ls_hashed_status.
+*          ENDIF.
+*        ENDIF.
+*      ENDLOOP.
+*    ENDLOOP.
+
+***     Map Data According to OData
+    DATA: r_descr1 TYPE REF TO cl_abap_structdescr,
+          r_descr2 TYPE REF TO cl_abap_structdescr,
+          wa_comp  TYPE abap_compdescr.
+    FIELD-SYMBOLS: <f1> TYPE any,<f2> TYPE any.
+    r_descr1 ?= cl_abap_typedescr=>describe_by_data( ls_edoc_data ).
+    r_descr2 ?= cl_abap_typedescr=>describe_by_data( ls_result-state ).
+    LOOP AT r_descr1->components ASSIGNING FIELD-SYMBOL(<fs_table_data>).
+      LOOP AT r_descr2->components ASSIGNING FIELD-SYMBOL(<fs_quorum_data>).
+        IF <fs_table_data>-name = <fs_quorum_data>-name.
+          ASSIGN COMPONENT <fs_table_data>-name OF STRUCTURE ls_edoc_data TO <f1>.
+          ASSIGN COMPONENT <fs_quorum_data>-name OF STRUCTURE ls_result-state TO <f2>.
+          IF <f1> = <f2>.
+            ls_hashed_status-field = <fs_table_data>-name.
+            ls_hashed_status-value = <f1>.
+            ls_hashed_status-complaint = abap_true.
+            ls_hashed_status-current_hash = <f1>.
+            ls_hashed_status-multichain_hash =  <f2>.
+            APPEND ls_hashed_status TO et_hashed_status.
+            CLEAR ls_hashed_status.
+          ELSE.
+            lv_compliance = ''.
+            ls_hashed_status-field = <fs_table_data>-name.
+            ls_hashed_status-value = <f1>.
+            ls_hashed_status-complaint = abap_false.
+            ls_hashed_status-current_hash = <f1>.
+            ls_hashed_status-multichain_hash =  <f2>.
+            APPEND ls_hashed_status TO et_hashed_status.
+            CLEAR ls_hashed_status.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+*** Overall Compliance Check
+    IF lv_compliance = 'X'.
+      LOOP AT et_hashed_status ASSIGNING FIELD-SYMBOL(<fs_hashed_status>).
+        <fs_hashed_status>-overall_compliance = 'X'.
+      ENDLOOP.
+    ENDIF.
+
+  ENDMETHOD.

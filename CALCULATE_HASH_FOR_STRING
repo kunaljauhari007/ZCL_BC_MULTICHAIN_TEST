@@ -1,0 +1,14 @@
+  METHOD calculate_hash_for_string.
+
+    TRY.
+        cl_abap_message_digest=>calculate_hash_for_char(
+          EXPORTING
+            if_algorithm = 'SHA256'
+            if_data      = iv_data
+          IMPORTING
+            ef_hashstring = ev_sha256
+        ).
+      CATCH cx_root.
+        " Eh, what're you gonna do?
+    ENDTRY.
+  ENDMETHOD.

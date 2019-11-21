@@ -1,0 +1,154 @@
+  METHOD get_hashes.
+*** Get Hashes for all the field and append it into an Internal Table
+    DATA: lv_data        TYPE string,
+          ls_hashed_data TYPE zedoc_range.
+* GUID
+    ls_hashed_data-field = 'GUID'.
+    ls_hashed_data-VALUE = is_document-guid.
+    ls_hashed_data-CURRENT_HASH = is_document-guid.
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* COMPANYCODE
+    ls_hashed_data-field = 'Company Code'.
+    lv_data = is_document-COMPANYCODE.
+    ls_hashed_data-VALUE = is_document-COMPANYCODE.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* COUNTRY
+    ls_hashed_data-field = 'Country'.
+    ls_hashed_data-VALUE = is_document-COUNTRY.
+    lv_data = is_document-COUNTRY.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* SOURCETYPE
+    ls_hashed_data-field = 'Source Type'.
+    ls_hashed_data-VALUE = is_document-SOURCETYPE.
+    lv_data = is_document-SOURCETYPE.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* SOURCE_KEY
+    ls_hashed_data-field = 'eDocument Source Key'.
+    ls_hashed_data-VALUE = is_document-EDOCUMENTSOURCEKEY.
+    lv_data = is_document-EDOCUMENTSOURCEKEY.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* EDOC_TYPE
+    ls_hashed_data-field = 'eDocument Type'.
+    ls_hashed_data-VALUE = is_document-edocumenttype.
+    lv_data = is_document-edocumenttype.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* PROC_STATUS
+    ls_hashed_data-field = 'Process Status'.
+    lv_data = is_document-processstatus.
+    ls_hashed_data-VALUE = lv_data.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* CHANGED_BY
+    ls_hashed_data-field = 'Last Changed By User'.
+    ls_hashed_data-VALUE = is_document-LASTCHANGEDBYUSER.
+    lv_data = is_document-LASTCHANGEDBYUSER.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* CREATED_BY
+    ls_hashed_data-field = 'Created By User'.
+    ls_hashed_data-VALUE = is_document-CREATEDBYUSER.
+    lv_data = is_document-CREATEDBYUSER.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* BLDAT
+    ls_hashed_data-field = 'Document Date'.
+    ls_hashed_data-VALUE = is_document-documentdate.
+    lv_data = is_document-documentdate.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* BUDAT
+    ls_hashed_data-field = 'Posting Date'.
+    ls_hashed_data-VALUE = is_document-postingdate.
+    lv_data = is_document-postingdate.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* WAERS
+    ls_hashed_data-field = 'Currency'.
+    ls_hashed_data-VALUE = is_document-CURRENCY.
+    lv_data = is_document-CURRENCY.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+
+* NETWR
+    ls_hashed_data-field = 'Net Value'.
+    ls_hashed_data-VALUE = is_document-netvalue.
+    lv_data = is_document-netvalue.
+    zcl_bc_multichain_test=>calculate_hash_for_string(
+              EXPORTING
+                iv_data      = lv_data
+              IMPORTING
+                ev_sha256 = ls_hashed_data-CURRENT_HASH
+            ).
+    APPEND ls_hashed_data TO et_hashed_data.
+  ENDMETHOD.

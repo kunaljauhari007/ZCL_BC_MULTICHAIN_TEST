@@ -2,8 +2,8 @@
     DATA: lo_http_client TYPE REF TO if_http_client.
     DATA: response TYPE string,
           lv_url   TYPE string.
-    CONSTANTS: lv_initial_url TYPE string VALUE 'https://sapitcfd.authentication.sap.hana.ondemand.com/oauth/token?grant_type=client_credentials',
-               lv_auth        TYPE string VALUE 'Basic c2ItNmQ1YTRmYmEtYTVlYi00OTc2LThmNWQtMGE4NmU5NmFlNTJmIWI1Nzd8bmEtNTRiYzI1ZjMtZjkzNy00MGI3LThiMzMtZmZlMjQwODk5Y2YwIWIzNDI6TGMrcXBNT2dqUUhnUy9wci8vKy92cDh0SWZjPQ=='.
+    CONSTANTS: lv_initial_url TYPE string VALUE '<URL>',
+               lv_auth        TYPE string VALUE '<Bearer Auth code>'.
 
 
     "create HTTP client by url
